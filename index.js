@@ -1,23 +1,7 @@
 var blessed = require('blessed'),
-	contrib = require('blessed-contrib'),
-	dnode = require('dnode'),
-	_ = require('lodash'),
-	moment = require('moment');
-
-var server = dnode({
-    updateCeph: function (s, cb) {
-    	var pgstats = s.pgmap;
-    	setIOData(pgstats);
-    	setAvailabilityData(pgstats);
-    	updatePgSummary(s.health.summary);
-    	updatePgStates(pgstats);
-    	// console.log(s.health.health);
-    	// console.log(s.pgmap.pgs_by_state);
-    	screen.render()
-    }
-});
-
-server.listen(5003);
+contrib = require('blessed-contrib'),
+_ = require('lodash'),
+moment = require('moment');
 
 var screen = blessed.screen();
 var grid = new contrib.grid({rows: 12, cols: 12, screen: screen});
@@ -164,18 +148,18 @@ function updatePgStates(pgstats){
 	});
 
 	pgbar.setData(
-       { titles: titles
-       , data: states});
+		{ titles: titles
+			, data: states});
 }
 function setAvailabilityData(pgstats){
-    var totalGb = (pgstats.bytes_total / (1024*1024*1024)).toFixed(2);
-    var usedGb = (pgstats.bytes_used / (1024*1024*1024)).toFixed(2);
-    var availGb = (pgstats.bytes_avail / (1024*1024*1024)).toFixed(2);
-    var usedPct = parseFloat(parseFloat(usedGb / totalGb).toFixed(2) * 100).toFixed(0);
-    var availPct = parseFloat(parseFloat(availGb / totalGb).toFixed(2) * 100).toFixed(0);
+	var totalGb = (pgstats.bytes_total / (1024*1024*1024)).toFixed(2);
+	var usedGb = (pgstats.bytes_used / (1024*1024*1024)).toFixed(2);
+	var availGb = (pgstats.bytes_avail / (1024*1024*1024)).toFixed(2);
+	var usedPct = parseFloat(parseFloat(usedGb / totalGb).toFixed(2) * 100).toFixed(0);
+	var availPct = parseFloat(parseFloat(availGb / totalGb).toFixed(2) * 100).toFixed(0);
 
-    usedGauge.setPercent(usedPct);
-    freeGauge.setPercent(availPct);
+	usedGauge.setPercent(usedPct);
+	freeGauge.setPercent(availPct);
 }
 function updatePgSummary(pgsummary){
 	var u = _.map(pgsummary, function(v,i){
@@ -193,3 +177,36 @@ screen.key(['escape', 'q', 'C-c'], function(ch, key) {
 	return process.exit(0);
 });
 screen.render();
+
+var express = require('express');
+var app = express();
+var bodyParser = require('body-parser');
+
+app.use(bodyParser.json());
+app.post('/', function(req, res, next){
+	if (req.body.health){
+		var pgstats = req.body.pgmap;
+		setIOData(pgstats);
+		setAvailabilityData(pgstats);
+		updatePgSummary(req.body.health.summary);
+		updatePgStates(pgstats);
+        screen.render()
+    }
+    res.send('');
+});
+app.listen('3004');
+
+/*var server = dnode({
+    updateCeph: function (s, cb) {
+    	var pgstats = s.pgmap;
+    	setIOData(pgstats);
+    	setAvailabilityData(pgstats);
+    	updatePgSummary(s.health.summary);
+    	updatePgStates(pgstats);
+    	// console.log(s.health.health);
+    	// console.log(s.pgmap.pgs_by_state);
+    	screen.render()
+    }
+});
+server.listen(5003);
+*/
