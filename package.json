@@ -1,0 +1,30 @@
+{
+  "name": "blessed-ceph-dash",
+  "version": "0.0.1",
+  "description": "ceph dashboard using blessed-contrib",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xcezzz/blessed-ceph-dash"
+  },
+  "keywords": [
+    "ceph",
+    "dashboard",
+    "blessed",
+    "blessed-contrib"
+  ],
+  "author": "xcezzz",
+  "license": "GNU",
+  "bugs": {
+    "url": "https://github.com/xcezzz/blessed-ceph-dash/issues"
+  },
+  "dependencies": {
+    "blessed": "~0.1.60",
+    "lodash": "~3.9.3",
+    "moment": "~2.10.3",
+    "blessed-contrib": "~2.0.5"
+  }
+}
