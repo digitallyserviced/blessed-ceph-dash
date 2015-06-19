@@ -1,11 +1,8 @@
 # blessed-ceph-dash
 ceph dashboard using blessed-contrib
 
-**Please note as of this time the dashboard only works with my `lcd-display` branch of [blessed-contrib](https://github.com/xcezzz/blessed-contrib/tree/lcd-display)**
+**Please note as of this time the dashboard only works with my `master` branch of [blessed-contrib](https://github.com/xcezzz/blessed-contrib). The package.json reflects this now.**
 
-```bash
-npm install https://github.com/xcezzz/blessed-contrib.git\#lcd-display
-```
 
 ![Image of blessed-ceph-dash](./screenshot.png)
 
@@ -18,7 +15,7 @@ Since my Ceph cluster is on a private network and inaccessible from dev machines
 ####On some host
 ```bash
 git clone https://github.com/xcezzz/blessed-ceph-dash.git
-
+cd blessed-ceph-dash && npm install
 node index
 ```
 
