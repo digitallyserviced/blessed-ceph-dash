@@ -40,12 +40,18 @@ var pgbar = grid.set(6, 6, 6, 3, contrib.bar, {
 	maxHeight: 9
 });
 
-var table =  grid.set(6, 9, 6, 3, contrib.table, {
+var table =  grid.set(6, 9, 3, 3, contrib.table, {
 	keys: true,
 	fg: 'green',
 	label: 'PG Health',
 	columnSpacing: 2,
 	columnWidth: [16, 48]
+});
+
+var donut =  grid.set(9, 9, 3, 3, contrib.donut, {
+	label: 'Out of Sync',
+	radius: 10,
+	arcWidth: 4
 });
 
 var clientWriteIO = {
@@ -133,8 +139,8 @@ function setIOData(pgstats){
 	else
 		clientReadIO.y.push(0);
 
-	if (!isNaN(read_bytes_sec_mb))
-		recoveryWriteIO.y.push(read_bytes_sec_mb);
+	if (!isNaN(recovery_bytes_sec_mb))
+		recoveryWriteIO.y.push(recovery_bytes_sec_mb);
 	else
 		recoveryWriteIO.y.push(0);
 
@@ -241,6 +247,14 @@ function updateHealth(h){
 
 	overallhealth.setDisplay(text);
 }
+function updateDonut(pgstats){
+	var misplaced_ratio = pgstats.misplaced_ratio || 0.01;
+	var degraded_ratio = pgstats.degraded_ratio || 0.01;
+	donut.update([
+		{percent: parseFloat(misplaced_ratio).toFixed(2), label: 'Misplaced','color': 'green'},
+		{percent: parseFloat(degraded_ratio).toFixed(2), label: 'Degraded','color': 'red'},
+	]);
+}
 screen.key(['escape', 'q', 'C-c'], function(ch, key) {
 	return process.exit(0);
 });
@@ -265,6 +279,8 @@ app.post('/', function(req, res, next){
 		setAvailabilityData(pgstats);
 		updatePgSummary(req.body.health.summary);
 		updatePgStates(pgstats);
+		updateDonut(pgstats);
+
 		updateHealth(req.body.health);
         screen.render();
     }
