@@ -16,12 +16,6 @@ The `ceph-dash` has a few different modes for accessing Ceph cluster information
 
 [Dumb Dashboard](#dumb)
 
-The dashboard uses an express route so that you can post the output of `ceph status -f json` to it.
-
-Adding more features and customizability soon.
-
-Since my Ceph cluster is on a private network and inaccessible from dev machines. The Ceph cluster POSTs data outbound to port 3004 (default port used in this).
-
 ###Installation
 ```bash
 npm install blessed-ceph-dash
