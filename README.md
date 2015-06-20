@@ -12,6 +12,8 @@ The `ceph-dash` has a few different modes for accessing Ceph cluster information
 
 [Local Ceph Cluster](#local)
 
+[Remote Ceph Cluster - SSH](#remote)
+
 [Dumb Dashboard](#dumb)
 
 The dashboard uses an express route so that you can post the output of `ceph status -f json` to it.
