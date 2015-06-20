@@ -41,7 +41,7 @@ var argv = require('optimist')
 			throw "SSH Mode requires --remote=hostname";
 			return false;
 		}
-		if (args.remote && !args.key){
+		if ((args.remote && !args.key) && !args.password){
 			try {
 				key = require('fs').readFileSync(process.env.HOME + '/.ssh/id_rsa');
 			} catch(e) {
@@ -51,12 +51,15 @@ var argv = require('optimist')
 					throw "No key available in default locations (Default: ~/.ssh/id_rsa and ~/.ssh/id_dsa)\nCreate key or specify the key with --key";
 				}
 			}
-		} else if (args.remote && args.key) {
+		} else if ((args.remote && args.key) && !args.password) {
 			try {
 				key = require('fs').readFileSync(args.key);
 			} catch(e) {
 				throw "No key available in specified location: " + args.key;
 			}
+		}
+		if (!args.remote && !args.noauto && !args.local){
+			args.local = true;
 		}
 		return args;
 	})
@@ -68,6 +71,18 @@ var cd = null;
 if (argv.remote){
 	var ssh = require('ssh2').Client;
 	var conn = new ssh();
+	var options = {
+		host: argv.remote,
+		port: argv.port,
+		username: argv.user
+	};
+
+	if (key){
+		options.privateKey = key;
+	} else {
+		options.password = argv.password;
+	}
+
 	conn.on('ready', function() {
 		console.log('Client :: ready');
 		conn.exec('while true; do ceph status -f json; sleep 2; done', function(err, stream) {
@@ -88,12 +103,7 @@ if (argv.remote){
 				conn.end();
 			});
 		});
-	}).connect({
-		host: argv.remote,
-		port: argv.port,
-		username: argv.user,
-		privateKey: key
-	});
+	}).connect(options);
 } else if (argv.local){
 	cd = new cephDashboard();
 	var exec = require('child_process').exec;
