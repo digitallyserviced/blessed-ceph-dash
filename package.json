@@ -23,11 +23,13 @@
   },
   "dependencies": {
     "blessed": "~0.1.60",
+    "blessed-contrib": "git://github.com/xcezzz/blessed-contrib.git",
+    "body-parser": "~1.12.4",
+    "express": "~4.12.4",
     "lodash": "~3.9.3",
     "moment": "~2.10.3",
-    "blessed-contrib":
-      "git://github.com/xcezzz/blessed-contrib.git",
-    "express": "~4.12.4",
-    "body-parser": "~1.12.4"
+    "optimist": "^0.6.1",
+    "ssh2": "^0.4.8",
+    "through2": "^2.0.0"
   }
 }

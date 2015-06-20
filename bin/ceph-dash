@@ -1,0 +1,108 @@
+#!/usr/bin/env node
+var through = require('through2');
+var key = null;
+var argv = require('optimist')
+	.usage('Display statistics for the Ceph storage platform.\nUsage: $0')
+	.alias('l', 'local')
+	.boolean('l','local')
+	.describe('l', 'Local Mode: Gather statistics if running locally to Ceph. Expects \'ceph\' in path and authenticated. [DEFAULT]')
+	.alias('r', 'remote')
+	.string('r','remote')
+	.describe('r', 'SSH Mode: Gather statistics from specified Ceph admin machine via SSH. e.g --remote=servername.com')
+	.alias('n', 'nostats')
+	.boolean('n','nostats')
+	.describe('n', 'NoStat Mode: Do not gather statistics automatically. Used for when you will manually POST data to ceph-dash')
+	.alias('u', 'user')
+	.describe('u', 'User for SSH authentication to Ceph admin machine')
+	.string('u','user')
+	.default('u','root')
+	.describe('password', 'Password for SSH authentication to Ceph admin machine (NOT RECOMMENDED)')
+	.string('password')
+	.alias('k', 'key')
+	.describe('k', 'SSH key file. (Default: ~/.ssh/id_rsa and ~/.ssh/id_dsa)')
+	.string('k','key')
+	.alias('p', 'port')
+	.describe('p', 'Port to connect with SSH.')
+	.default('p', 22)
+	.alias('b', 'bind')
+	.describe('b', 'Port to listen on for \'ceph health -fjson\' to be POSTd to.')
+	.default('b', 3004)
+	.alias('h', 'help')
+	.describe('h', 'Show usage message.')
+	.wrap(80)
+	.check(function(args){
+		if (args.h){
+			throw "Usage displayed.";
+		}
+		if (typeof(args.remote) == typeof("") && args.remote.toString().length < 1){
+			throw "SSH Mode requires --remote=hostname";
+			return false;
+		}
+		if (args.remote && !args.key){
+			try {
+				key = require('fs').readFileSync(process.env.HOME + '/.ssh/id_rsa');
+			} catch(e) {
+				try {
+					key = require('fs').readFileSync(process.env.HOME +  '/.ssh/id_dsa')
+				} catch (e) {
+					throw "No key available in default locations (Default: ~/.ssh/id_rsa and ~/.ssh/id_dsa)\nCreate key or specify the key with --key";
+				}
+			}
+		} else if (args.remote && args.key) {
+			try {
+				key = require('fs').readFileSync(args.key);
+			} catch(e) {
+				throw "No key available in specified location: " + args.key;
+			}
+		}
+		return args;
+	})
+	.argv;
+
+var cephDashboard = new require('../lib/ceph-dash.js');
+var cd = null;
+
+if (argv.remote){
+	var ssh = require('ssh2').Client;
+	var conn = new ssh();
+	conn.on('ready', function() {
+		console.log('Client :: ready');
+		conn.exec('while true; do ceph status -f json; sleep 2; done', function(err, stream) {
+			if (err) throw err;
+			cd = new cephDashboard();
+			stream.on('close', function(code, signal) {
+				console.log('Stream :: close :: code: ' + code + ', signal: ' + signal);
+				conn.end();
+			}).on('data', function(data) {
+				var json = JSON.parse(data);
+				cd.update(json);
+			}).stderr.on('data', function(data) {
+				console.log('STDERR: ' + data);
+				conn.end();
+			});
+		});
+	}).connect({
+		host: argv.remote,
+		port: argv.port,
+		username: argv.user,
+		privateKey: key
+	});
+} else if (argv.nostats){
+	function startListening(){
+		var express = require('express');
+		var app = express();
+		var bodyParser = require('body-parser');
+		cd = new cephDashboard();
+		app.use(bodyParser.json());
+		app.post('/', function(req, res, next){
+			if (req.body.health){
+				cd.update(req.body);
+		    }
+		    res.send('');
+		});
+		app.listen(argv.bind);
+	}
+}
+
+
+//require('../lib/cli.js');
