@@ -6,6 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "bin": {
+    "ceph-dash": "bin/ceph-dash"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/xcezzz/blessed-ceph-dash"
@@ -25,6 +28,7 @@
     "blessed": "~0.1.60",
     "blessed-contrib": "git://github.com/xcezzz/blessed-contrib.git",
     "body-parser": "~1.12.4",
+    "colors": "^1.1.2",
     "express": "~4.12.4",
     "lodash": "~3.9.3",
     "moment": "~2.10.3",

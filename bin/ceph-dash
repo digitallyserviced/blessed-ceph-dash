@@ -1,6 +1,9 @@
 #!/usr/bin/env node
+
 var through = require('through2');
+var colors = require('colors');
 var key = null;
+
 var argv = require('optimist')
 	.usage('Display statistics for the Ceph storage platform.\nUsage: $0')
 	.alias('l', 'local')
@@ -9,9 +12,9 @@ var argv = require('optimist')
 	.alias('r', 'remote')
 	.string('r','remote')
 	.describe('r', 'SSH Mode: Gather statistics from specified Ceph admin machine via SSH. e.g --remote=servername.com')
-	.alias('n', 'nostats')
-	.boolean('n','nostats')
-	.describe('n', 'NoStat Mode: Do not gather statistics automatically. Used for when you will manually POST data to ceph-dash')
+	.alias('n', 'noauto')
+	.boolean('n','noauto')
+	.describe('n', 'NoAuto Mode: Do not gather statistics automatically. Used for when you will manually POST data to ceph-dash')
 	.alias('u', 'user')
 	.describe('u', 'User for SSH authentication to Ceph admin machine')
 	.string('u','user')
@@ -74,8 +77,12 @@ if (argv.remote){
 				console.log('Stream :: close :: code: ' + code + ', signal: ' + signal);
 				conn.end();
 			}).on('data', function(data) {
-				var json = JSON.parse(data);
-				cd.update(json);
+				try {
+					var json = JSON.parse(data);
+					cd.update(json);
+				} catch(e){
+					console.error(e);
+				}
 			}).stderr.on('data', function(data) {
 				console.log('STDERR: ' + data);
 				conn.end();
@@ -87,14 +94,35 @@ if (argv.remote){
 		username: argv.user,
 		privateKey: key
 	});
-} else if (argv.nostats){
+} else if (argv.local){
+	cd = new cephDashboard();
+	var exec = require('child_process').exec;
+	function getCephStatus(){
+		var cephStatus = exec('ceph status -f json', function(err, stdout, stderr){
+			if (err) throw err;
+			if (stderr) throw stderr;
+			try {
+				var json = JSON.parse(stdout);
+				cd.update(json);
+			} catch(e) {
+				throw "Error executing parsing JSON";
+				return;
+			}
+			getCephStatus();
+		});
+	}
+	getCephStatus();
+} else if (argv.noauto){
 	function startListening(){
 		var express = require('express');
 		var app = express();
 		var bodyParser = require('body-parser');
-		cd = new cephDashboard();
+		
 		app.use(bodyParser.json());
 		app.post('/', function(req, res, next){
+			if (!cd){
+				cd = new cephDashboard();
+			}
 			if (req.body.health){
 				cd.update(req.body);
 		    }
@@ -102,6 +130,21 @@ if (argv.remote){
 		});
 		app.listen(argv.bind);
 	}
+	startListening();
+	var usage = [
+		"We are now listening on 0.0.0.0:" + argv.bind + " for POSTs",
+		"For the dashboard to start displaying data please POST data to me.",
+		"The simplest method is on a Ceph admin server run the following",
+		"while true; do",
+		"    ceph status -f json | curl -X POST \\",
+        "        -H \"Content-type: application/json\" \\",
+        "        -d @- http://"+"thishost".green+":"+argv.bind+"/; ",
+    	"    sleep 2; ",
+    	"done",
+    	"Obviously you will need to make " + "thishost".green + " the hostname of this machine"
+	].join("\n");
+	console.log(usage);
+
 }
 
 
