@@ -1,10 +1,18 @@
-# blessed-ceph-dash
+#blessed-ceph-dash
 ceph dashboard using blessed-contrib
 
 **Please note as of this time the dashboard only works with my `master` branch of [blessed-contrib](https://github.com/xcezzz/blessed-contrib). The package.json reflects this now.**
 
 
 ![Image of blessed-ceph-dash](./screenshot.png)
+
+The `ceph-dash` has a few different modes for accessing Ceph cluster information.
+
+[Usage](#usage)
+
+[Local Ceph Cluster](#local)
+
+[Dumb Dashboard](#dumb)
 
 The dashboard uses an express route so that you can post the output of `ceph status -f json` to it.
 
@@ -41,23 +49,35 @@ Options:
   -h, --help    Show usage message.
 ```
 
-####On a machine that can access the Ceph cluster
+####Local
+
+From a local machine to the Ceph cluster that already has admin rights, and can run `ceph status` without additional options (default auth).
+
 ```bash
 ceph-dash
 ```
 
-####On a machine that can SSH to the Ceph cluster
+
+####Remote
+
+From a machine that can connect to a 'Local' Ceph box over SSH. The 'Local' box we are SSHing to needs to be able to run the `ceph status` command without additional options (default auth)
+
 ```bash
 ceph-dash --remote=someserver.com --port 22 --key .ssh/id_rsa
 ```
+
 You could also specify `--password=PASSWORD` but obviously this is probably not a good idea as your password will now leak out.
 
-####On a machine will run the dashboard
+
+####Dumb
+
+From a machine that you want to run the dashboard you will launch ceph-dash and it will listen on a public port.
+
 ```bash
 ceph-dash --noauto --bind 1234
 ```
 
-Then from inside your Ceph network you will POST the output of `ceph status -f json` to the machine you are running the dashboard.
+Then from inside your Ceph network you will POST the output of `ceph status -f json` to the machine that is running the dashboard. This method may be required for more advanced configurations and internal Ceph clusters that are inaccessible to any public methods.
 
 ```bash
 while true; do 
