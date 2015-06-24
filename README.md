@@ -1,8 +1,6 @@
 #blessed-ceph-dash
 ceph dashboard using blessed-contrib
 
-**Please note as of this time the dashboard only works with my `master` branch of [blessed-contrib](https://github.com/xcezzz/blessed-contrib). The package.json reflects this now.**
-
 
 ![Image of blessed-ceph-dash](./screenshot.png)
 
