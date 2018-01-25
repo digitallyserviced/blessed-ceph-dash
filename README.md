@@ -14,12 +14,12 @@ The `ceph-dash` has a few different modes for accessing Ceph cluster information
 
 [Dumb Dashboard](#dumb)
 
-###Installation
+### Installation
 ```bash
 npm install blessed-ceph-dash
 ```
 
-####Usage
+#### Usage
 
 ```bash
 Display statistics for the Ceph storage platform.
@@ -43,7 +43,7 @@ Options:
   -h, --help    Show usage message.
 ```
 
-####Local
+#### Local
 
 From a local machine to the Ceph cluster that already has admin rights, and can run `ceph status` without additional options (default auth).
 
@@ -52,7 +52,7 @@ ceph-dash
 ```
 
 
-####Remote
+#### Remote
 
 From a machine that can connect to a 'Local' Ceph box over SSH. The 'Local' box we are SSHing to needs to be able to run the `ceph status` command without additional options (default auth)
 
@@ -63,7 +63,7 @@ ceph-dash --remote=someserver.com --port 22 --key .ssh/id_rsa
 You could also specify `--password=PASSWORD` but obviously this is probably not a good idea as your password will now leak out.
 
 
-####Dumb
+#### Dumb
 
 From a machine that you want to run the dashboard you will launch ceph-dash and it will listen on a public port.
 
